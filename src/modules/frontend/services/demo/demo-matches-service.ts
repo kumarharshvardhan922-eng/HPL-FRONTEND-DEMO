@@ -1,8 +1,8 @@
 import { Fixture, Match, MatchesService, MatchStatus, NotFoundError, SportId } from "../../types";
-import { SHOWCASE_MATCH } from "../../showcase/showcase";
+import { SHOWCASE_MATCHES, SHOWCASE_MATCH } from "../../showcase/showcase";
 
 export class DemoMatchesService implements MatchesService {
-  private matches: Match[] = [{ ...SHOWCASE_MATCH }];
+  private matches: Match[] = SHOWCASE_MATCHES.map((m) => ({ ...m }));
 
   async getMatches(filter?: {
     sportId?: SportId;
@@ -25,22 +25,19 @@ export class DemoMatchesService implements MatchesService {
   }
 
   async getFixtures(filter?: { sportId?: SportId; date?: string }): Promise<Fixture[]> {
-    const m = this.matches[0];
-    if (!m) return [];
-    if (filter?.sportId && filter.sportId !== m.sportId) return [];
-    return [
-      {
-        id: "fixture-demo-1",
-        matchId: m.id,
-        sportId: m.sportId,
-        teamAId: m.teamAId,
-        teamBId: m.teamBId,
-        round: m.round,
-        scheduledStartTime: m.startTime,
-        venue: m.venue,
-        isDemo: true,
-      },
-    ];
+    let result: Fixture[] = this.matches.map((m) => ({
+      id: `fixture-demo-${m.sportId}`,
+      matchId: m.id,
+      sportId: m.sportId,
+      teamAId: m.teamAId,
+      teamBId: m.teamBId,
+      round: m.round,
+      scheduledStartTime: m.startTime,
+      venue: m.venue,
+      isDemo: true,
+    }));
+    if (filter?.sportId) result = result.filter((f) => f.sportId === filter.sportId);
+    return result;
   }
 
   async createMatch(input: {

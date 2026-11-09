@@ -57,14 +57,17 @@ describe("Empty States, Demo Showcase, and Real Houses Configuration", () => {
     expect(await screen.findByText(/No fixtures found/i)).toBeInTheDocument();
   });
 
-  it("(2) the demo services return exactly one showcase match and display the Demo Data badge", async () => {
+  it("(2) the demo services return one showcase match per department and display the Demo Data badge", async () => {
     const demoMatches = new DemoMatchesService();
     const matches = await demoMatches.getMatches();
 
-    // Exactly one showcase match
-    expect(matches).toHaveLength(1);
+    // Exactly one showcase match per sport department (6 total)
+    expect(matches).toHaveLength(6);
     expect(matches[0].id).toBe("match-demo-showcase");
     expect(matches[0].isDemo).toBe(true);
+
+    const cricketMatches = await demoMatches.getMatches({ sportId: "cricket" });
+    expect(cricketMatches).toHaveLength(1);
 
     const teamA = SHOWCASE_TEAMS.find((t) => t.id === matches[0].teamAId)!;
     const teamB = SHOWCASE_TEAMS.find((t) => t.id === matches[0].teamBId)!;

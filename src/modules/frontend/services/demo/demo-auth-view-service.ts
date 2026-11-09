@@ -1,15 +1,9 @@
 import { AuthViewService, Role, SportId, User, ValidationError } from "../../types";
+import { SHOWCASE_ADMINS, SHOWCASE_SUPER_ADMIN } from "../../showcase/showcase";
 
 export class DemoAuthViewService implements AuthViewService {
-  private currentUser: User = {
-    id: "user-demo-admin",
-    email: "demo-admin@hpl.ac.in",
-    displayName: "Tournament Demo Admin",
-    role: "super_admin",
-    isDemo: true,
-  };
-
-  private admins: User[] = [this.currentUser];
+  private currentUser: User = { ...SHOWCASE_SUPER_ADMIN };
+  private admins: User[] = SHOWCASE_ADMINS.map((a) => ({ ...a }));
 
   async getCurrentUser(): Promise<User> {
     return { ...this.currentUser };
