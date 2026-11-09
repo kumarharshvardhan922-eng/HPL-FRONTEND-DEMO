@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-deep: #050d17;
+  --bg-surface: #0b1a28;
+  --bg-surface-2: #0f2434;
+  --border: #17384d;
+  --accent: #38b6ff;
+  --accent-soft: #8fd8ff;
+  --accent-glow: rgba(56, 182, 255, 0.25);
+  --gold: #fbbf24;
+  --text: #ffffff;
+  --text-muted: #8fa7ba;
+  --live: #ef4444;
+  --success: #22c55e;
+}
+
+body {
+  color: var(--text);
+  background-color: var(--bg-deep);
+  background-image: 
+    radial-gradient(ellipse 90% 50% at 50% -10%, rgba(56, 182, 255, 0.12), transparent 70%),
+    radial-gradient(ellipse 70% 40% at 85% 75%, rgba(23, 56, 77, 0.3), transparent 60%),
+    radial-gradient(ellipse 70% 40% at 15% 45%, rgba(15, 36, 52, 0.35), transparent 60%);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Condensed display font */
+.font-display {
+  font-family: var(--font-display), "Bebas Neue", Anton, Impact, sans-serif;
+  letter-spacing: 0.03em;
+}
+
+/* Custom scrollbar for horizontal chip bars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth focus rings in accent colour */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Glow utility */
+.glow-accent {
+  box-shadow: 0 0 25px var(--accent-glow);
+}
+
+.text-glow-accent {
+  text-shadow: 0 0 20px rgba(56, 182, 255, 0.6), 0 0 35px rgba(56, 182, 255, 0.3);
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
