@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Role, SportId } from "../../types";
+import { HPL_SPORTS } from "../../config/sports";
 import { Input } from "../ui/input";
 import { Select } from "../ui/select";
 import { Button } from "../ui/button";
@@ -34,14 +35,7 @@ export const AdminInviteForm: React.FC<AdminInviteFormProps> = ({
     { value: "super_admin", label: "Super Admin (Full Access)" },
   ];
 
-  const sportOptions = [
-    { value: "cricket", label: "Cricket" },
-    { value: "football", label: "Football" },
-    { value: "kabaddi", label: "Kabaddi" },
-    { value: "badminton", label: "Badminton" },
-    { value: "volleyball", label: "Volleyball" },
-    { value: "basketball", label: "Basketball" },
-  ];
+  const sportOptions = HPL_SPORTS.map((s) => ({ value: s.id, label: s.name }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

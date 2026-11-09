@@ -24,6 +24,7 @@ export interface User {
   displayName: string;
   role: Role;
   assignedSportIds?: SportId[]; // Only applicable for sport_admin
+  assignedSports?: SportId[]; // Alias for assignedSportIds
   isDemo?: boolean;
 }
 

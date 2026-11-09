@@ -85,14 +85,14 @@ export const AdminScoringPage: React.FC<AdminScoringPageProps> = ({ matchId }) =
         <div className="w-16 h-16 rounded-2xl bg-hpl-surface-2 text-hpl-gold flex items-center justify-center mx-auto border border-hpl-gold/30">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-bold text-white font-display">Restricted Discipline</h2>
+        <h2 className="text-xl font-bold text-white font-display">No Access</h2>
         <p className="text-xs text-hpl-muted">
           You are signed in as a Sport Admin without scoring delegation for{" "}
           <span className="font-bold uppercase text-hpl-accent">{match.sportId}</span>. Please request access from the Super Admin.
         </p>
         <div className="pt-2">
-          <Link href="/admin/fixtures">
-            <Button variant="outline">Back to Fixtures</Button>
+          <Link href="/admin">
+            <Button variant="outline">Back to dashboard</Button>
           </Link>
         </div>
       </div>

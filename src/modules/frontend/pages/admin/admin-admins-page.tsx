@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { User, Role, SportId } from "../../types";
 import { useServices } from "../../providers";
 import { useAuthView } from "../../providers/auth-view-provider";
@@ -50,6 +51,11 @@ export const AdminAdminsPage: React.FC = () => {
           Only tournament conveners (Super Admin) are authorized to view administrative operators,
           delegate sport roles, or issue invitations.
         </p>
+        <div className="pt-2">
+          <Link href="/admin">
+            <Button variant="outline">Back to dashboard</Button>
+          </Link>
+        </div>
       </div>
     );
   }

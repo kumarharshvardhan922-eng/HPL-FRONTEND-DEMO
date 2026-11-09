@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { useSports, useTeams, useMatches } from "../../hooks";
 import { useAuthView } from "../../providers/auth-view-provider";
+import { canAccessSport } from "../../utils/permissions";
+import { HPL_SPORTS } from "../../config/sports";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -13,14 +15,28 @@ export const AdminOverviewPage: React.FC = () => {
   const { sports } = useSports();
   const { teams } = useTeams();
   const { matches } = useMatches();
-  const { role, assignedSportIds, isPermittedForSport } = useAuthView();
+  const { currentUser, role, assignedSportIds, isPermittedForSport } = useAuthView();
 
-  const liveMatches = matches.filter((m) => m.status === "live");
-  const upcomingMatches = matches.filter((m) => m.status === "upcoming");
+  const assignedSport =
+    role === "sport_admin" && assignedSportIds[0]
+      ? HPL_SPORTS.find((s) => s.id === assignedSportIds[0])
+      : null;
+
+  // Filter matches and sports strictly according to permissions
+  const scopedMatches =
+    role === "super_admin"
+      ? matches
+      : matches.filter((m) => canAccessSport(currentUser, m.sportId));
+
+  const liveMatches = scopedMatches.filter((m) => m.status === "live");
+  const upcomingMatches = scopedMatches.filter((m) => m.status === "upcoming");
   const totalPlayersCount = teams.reduce((acc, t) => acc + t.playerIds.length, 0);
 
   // Filter sports for Sport Admin view
-  const visibleSports = role === "super_admin" ? sports : sports.filter((s) => assignedSportIds.includes(s.id));
+  const visibleSportsList =
+    role === "super_admin"
+      ? sports
+      : sports.filter((s) => canAccessSport(currentUser, s.id));
   const teamsMap = Object.fromEntries(teams.map((t) => [t.id, t]));
 
   return (
@@ -33,14 +49,14 @@ export const AdminOverviewPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-hpl-accent" />
               <span className="text-xs font-bold uppercase tracking-wider text-hpl-accent font-display">
-                Logged in as {role.replace("_", " ")}
+                Logged in as {role === "sport_admin" ? `Sport Admin (${assignedSport?.name || "Scoped"})` : role.replace("_", " ")}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black font-display text-white">Tournament Command Centre</h1>
             <p className="text-xs sm:text-sm text-hpl-muted">
               {role === "super_admin"
                 ? "Full administrative control across all 6 sports, 7 houses, rosters, and scoring consoles."
-                : `Scoped scoring access for assigned disciplines: ${assignedSportIds.join(", ")}`}
+                : `Scoped scoring access for assigned discipline: ${assignedSport?.name || assignedSportIds.join(", ")}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -61,7 +77,7 @@ export const AdminOverviewPage: React.FC = () => {
             <span className="text-xs font-bold uppercase text-hpl-accent">Disciplines</span>
             <Trophy className="w-5 h-5 text-hpl-accent" />
           </div>
-          <div className="text-3xl font-black font-mono text-white mt-2">{visibleSports.length}</div>
+          <div className="text-3xl font-black font-mono text-white mt-2">{visibleSportsList.length}</div>
           <span className="text-[11px] text-hpl-muted mt-1 block">Active sports tracked</span>
         </Card>
 

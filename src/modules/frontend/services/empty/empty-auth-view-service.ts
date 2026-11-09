@@ -15,10 +15,12 @@ export class EmptyAuthViewService implements AuthViewService {
   }
 
   async setRole(role: Role, assignedSportIds?: SportId[]): Promise<User> {
+    const sports = role === "sport_admin" ? (assignedSportIds || ["cricket"]) : undefined;
     this.currentUser = {
       ...this.currentUser,
       role,
-      assignedSportIds: role === "sport_admin" ? (assignedSportIds || ["cricket"]) : undefined,
+      assignedSportIds: sports,
+      assignedSports: sports,
     };
     return { ...this.currentUser };
   }

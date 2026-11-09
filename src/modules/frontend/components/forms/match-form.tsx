@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Match, SportId, Team } from "../../types";
 import { Input } from "../ui/input";
 import { Select } from "../ui/select";
 import { Button } from "../ui/button";
 import { validateMatchForm } from "../../utils/validators";
+import { useAuthView } from "../../providers/auth-view-provider";
+import { HPL_SPORTS } from "../../config/sports";
+import { Lock } from "lucide-react";
 
 export interface MatchFormProps {
   teams: Team[];
@@ -30,7 +33,11 @@ export const MatchForm: React.FC<MatchFormProps> = ({
   onCancel,
   isLoading = false,
 }) => {
-  const [sportId, setSportId] = useState<SportId>(initialData?.sportId || "cricket");
+  const { role, assignedSportIds } = useAuthView();
+  const isSportLocked = role === "sport_admin" && assignedSportIds.length > 0;
+  const defaultSport = isSportLocked ? assignedSportIds[0] : initialData?.sportId || "cricket";
+
+  const [sportId, setSportId] = useState<SportId>(defaultSport);
   const [teamAId, setTeamAId] = useState(initialData?.teamAId || (teams[0]?.id || "team-arkavati"));
   const [teamBId, setTeamBId] = useState(initialData?.teamBId || (teams[1]?.id || "team-harangi"));
   const [startTime, setStartTime] = useState(
@@ -41,14 +48,13 @@ export const MatchForm: React.FC<MatchFormProps> = ({
   const [refereeUmpire, setRefereeUmpire] = useState(initialData?.refereeUmpire || "Prof. R. Narayanan");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const sportOptions = [
-    { value: "cricket", label: "Cricket" },
-    { value: "football", label: "Football" },
-    { value: "kabaddi", label: "Kabaddi" },
-    { value: "badminton", label: "Badminton" },
-    { value: "volleyball", label: "Volleyball" },
-    { value: "basketball", label: "Basketball" },
-  ];
+  useEffect(() => {
+    if (isSportLocked) {
+      setSportId(assignedSportIds[0]);
+    }
+  }, [isSportLocked, assignedSportIds]);
+
+  const sportOptions = HPL_SPORTS.map((s) => ({ value: s.id, label: s.name }));
 
   const teamOptions = [
     ...teams.map((t) => ({ value: t.id, label: t.name })),
@@ -67,7 +73,7 @@ export const MatchForm: React.FC<MatchFormProps> = ({
     }
     setErrors({});
     await onSubmit({
-      sportId,
+      sportId: isSportLocked ? assignedSportIds[0] : sportId,
       teamAId,
       teamBId,
       startTime: new Date(startTime).toISOString(),
@@ -79,12 +85,35 @@ export const MatchForm: React.FC<MatchFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Select
-        label="Sport Discipline"
-        value={sportId}
-        onChange={(e) => setSportId(e.target.value as SportId)}
-        options={sportOptions}
-      />
+      {isSportLocked ? (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-semibold text-white">Sport Discipline</label>
+            <span
+              className="inline-flex items-center gap-1 text-[11px] text-hpl-accent font-medium cursor-help"
+              title="Locked to your assigned sport"
+            >
+              <Lock className="w-3 h-3" />
+              Locked to your assigned sport
+            </span>
+          </div>
+          <Select
+            label=""
+            value={sportId}
+            disabled
+            onChange={() => {}}
+            options={sportOptions}
+            className="opacity-75 cursor-not-allowed bg-hpl-surface-2/60"
+          />
+        </div>
+      ) : (
+        <Select
+          label="Sport Discipline"
+          value={sportId}
+          onChange={(e) => setSportId(e.target.value as SportId)}
+          options={sportOptions}
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <Select

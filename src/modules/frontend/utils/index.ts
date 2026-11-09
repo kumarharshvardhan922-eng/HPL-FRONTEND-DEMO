@@ -7,4 +7,5 @@ export * from "./badminton-calc";
 export * from "./volleyball-calc";
 export * from "./basketball-calc";
 export * from "./validators";
+export * from "./permissions";
 

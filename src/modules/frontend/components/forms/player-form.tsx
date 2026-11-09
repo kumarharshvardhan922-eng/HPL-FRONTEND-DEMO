@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Player, SportId, Team } from "../../types";
 import { Input } from "../ui/input";
 import { Select } from "../ui/select";
 import { Button } from "../ui/button";
 import { validatePlayerForm } from "../../utils/validators";
 import { getInitials } from "../../utils/formatters";
+import { useAuthView } from "../../providers/auth-view-provider";
+import { HPL_SPORTS } from "../../config/sports";
+import { Lock } from "lucide-react";
 
 export interface PlayerFormProps {
   initialData?: Partial<Player>;
@@ -23,27 +26,29 @@ export const PlayerForm: React.FC<PlayerFormProps> = ({
   onCancel,
   isLoading = false,
 }) => {
+  const { role, assignedSportIds } = useAuthView();
+  const isSportLocked = role === "sport_admin" && assignedSportIds.length > 0;
+  const defaultSport = isSportLocked ? assignedSportIds[0] : initialData?.sportId || "cricket";
+
   const [name, setName] = useState(initialData?.name || "");
   const [jerseyNumber, setJerseyNumber] = useState(String(initialData?.jerseyNumber ?? 7));
   const [teamId, setTeamId] = useState(initialData?.teamId || (teams[0]?.id || "team-arkavati"));
-  const [sportId, setSportId] = useState<SportId>(initialData?.sportId || "cricket");
-  const [role, setRole] = useState(initialData?.role || "All-Rounder");
+  const [sportId, setSportId] = useState<SportId>(defaultSport);
+  const [roleField, setRoleField] = useState(initialData?.role || "All-Rounder");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const sportOptions = [
-    { value: "cricket", label: "Cricket" },
-    { value: "football", label: "Football" },
-    { value: "kabaddi", label: "Kabaddi" },
-    { value: "badminton", label: "Badminton" },
-    { value: "volleyball", label: "Volleyball" },
-    { value: "basketball", label: "Basketball" },
-  ];
+  useEffect(() => {
+    if (isSportLocked) {
+      setSportId(assignedSportIds[0]);
+    }
+  }, [isSportLocked, assignedSportIds]);
 
+  const sportOptions = HPL_SPORTS.map((s) => ({ value: s.id, label: s.name }));
   const teamOptions = teams.map((t) => ({ value: t.id, label: t.name }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validation = validatePlayerForm({ name, jerseyNumber, role });
+    const validation = validatePlayerForm({ name, jerseyNumber, role: roleField });
     if (!validation.isValid) {
       setErrors(validation.errors);
       return;
@@ -53,8 +58,8 @@ export const PlayerForm: React.FC<PlayerFormProps> = ({
       name: name.trim(),
       jerseyNumber: Number(jerseyNumber),
       teamId,
-      sportId,
-      role: role.trim(),
+      sportId: isSportLocked ? assignedSportIds[0] : sportId,
+      role: roleField.trim(),
       photoPlaceholderUrl: "",
     });
   };
@@ -101,17 +106,40 @@ export const PlayerForm: React.FC<PlayerFormProps> = ({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Select
-          label="Sport Discipline"
-          value={sportId}
-          onChange={(e) => setSportId(e.target.value as SportId)}
-          options={sportOptions}
-        />
+        {isSportLocked ? (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-white">Sport Discipline</label>
+              <span
+                className="inline-flex items-center gap-1 text-[11px] text-hpl-accent font-medium cursor-help"
+                title="Locked to your assigned sport"
+              >
+                <Lock className="w-3 h-3" />
+                Locked
+              </span>
+            </div>
+            <Select
+              label=""
+              value={sportId}
+              disabled
+              onChange={() => {}}
+              options={sportOptions}
+              className="opacity-75 cursor-not-allowed bg-hpl-surface-2/60"
+            />
+          </div>
+        ) : (
+          <Select
+            label="Sport Discipline"
+            value={sportId}
+            onChange={(e) => setSportId(e.target.value as SportId)}
+            options={sportOptions}
+          />
+        )}
         <Input
           label="Position / Role"
           placeholder="e.g. Opening Batsman, Striker"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
+          value={roleField}
+          onChange={(e) => setRoleField(e.target.value)}
           error={errors.role}
           required
         />

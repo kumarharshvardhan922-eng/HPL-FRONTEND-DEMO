@@ -5,15 +5,31 @@ import Link from "next/link";
 import { useSports } from "../../hooks";
 import { useAuthView } from "../../providers/auth-view-provider";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
-import { Trophy, ArrowRight } from "lucide-react";
+import { Trophy, ArrowRight, ShieldAlert } from "lucide-react";
 import { Button } from "../../components/ui/button";
 
 export const AdminSportsPage: React.FC = () => {
   const { sports } = useSports();
-  const { role, assignedSportIds } = useAuthView();
+  const { role } = useAuthView();
 
-  const filteredSports =
-    role === "super_admin" ? sports : sports.filter((s) => assignedSportIds.includes(s.id));
+  if (role !== "super_admin") {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-hpl-surface-2 text-hpl-gold flex items-center justify-center mx-auto border border-hpl-gold/30">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-white font-display">Restricted to Super Admin</h2>
+        <p className="text-xs text-hpl-muted">
+          Sports discipline rules and allocations are configured exclusively by tournament conveners.
+        </p>
+        <div className="pt-2">
+          <Link href="/admin">
+            <Button variant="outline">Back to dashboard</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -29,7 +45,7 @@ export const AdminSportsPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSports.map((s) => (
+        {sports.map((s) => (
           <Card key={s.id} variant="default" className="flex flex-col justify-between bg-hpl-surface border-hpl-border">
             <CardHeader>
               <div className="flex items-center justify-between mb-2">

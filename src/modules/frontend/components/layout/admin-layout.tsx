@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { AdminSidebar } from "./admin-sidebar";
 import { AdminTopbar } from "./admin-topbar";
 import { SiteBackground } from "./site-background";
+import { RoleSwitcher } from "./role-switcher";
 import { useAuthView } from "../../providers/auth-view-provider";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -39,13 +40,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title }) => 
             >
               Switch to Super Admin (Dev Mode)
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => switchRole("sport_admin", ["cricket"])}
-              className="w-full bg-hpl-surface-2 hover:bg-hpl-border text-hpl-accent"
-            >
-              Switch to Sport Admin (Cricket)
-            </Button>
+            <div className="w-full flex justify-center py-1">
+              <RoleSwitcher />
+            </div>
             <Link href="/" className="w-full">
               <Button variant="outline" className="w-full border-hpl-border text-white">
                 <ArrowLeft className="w-4 h-4 mr-2" />

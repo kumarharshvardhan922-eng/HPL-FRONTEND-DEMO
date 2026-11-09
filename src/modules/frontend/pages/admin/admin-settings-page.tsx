@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useAuthView } from "../../providers/auth-view-provider";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { ShieldAlert, Settings } from "lucide-react";
+import { Button } from "../../components/ui/button";
 
 export const AdminSettingsPage: React.FC = () => {
   const { role } = useAuthView();
@@ -18,6 +20,11 @@ export const AdminSettingsPage: React.FC = () => {
         <p className="text-xs text-hpl-muted">
           Tournament engine parameters and platform configurations are managed strictly by tournament conveners.
         </p>
+        <div className="pt-2">
+          <Link href="/admin">
+            <Button variant="outline">Back to dashboard</Button>
+          </Link>
+        </div>
       </div>
     );
   }

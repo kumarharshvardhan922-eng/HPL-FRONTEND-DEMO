@@ -5,6 +5,7 @@ import { RoleSwitcher } from "./role-switcher";
 import { Menu, ShieldCheck } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { useAuthView } from "../../providers/auth-view-provider";
+import { HPL_SPORTS } from "../../config/sports";
 
 export interface AdminTopbarProps {
   onOpenMobileSidebar: () => void;
@@ -12,7 +13,19 @@ export interface AdminTopbarProps {
 }
 
 export const AdminTopbar: React.FC<AdminTopbarProps> = ({ onOpenMobileSidebar, title }) => {
-  const { role } = useAuthView();
+  const { role, assignedSportIds } = useAuthView();
+
+  const assignedSport =
+    role === "sport_admin" && assignedSportIds[0]
+      ? HPL_SPORTS.find((s) => s.id === assignedSportIds[0])
+      : null;
+
+  const badgeText =
+    role === "super_admin"
+      ? "Super Admin"
+      : role === "sport_admin"
+      ? `Sport Admin · ${assignedSport?.name || assignedSportIds[0] || "Scoped"}`
+      : "Public User";
 
   return (
     <header className="h-16 bg-hpl-surface border-b border-hpl-border px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-card">
@@ -36,9 +49,13 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({ onOpenMobileSidebar, t
 
       <div className="flex items-center gap-3">
         <div className="hidden sm:flex items-center gap-2">
-          <Badge variant="upcoming" size="sm">
+          <Badge
+            variant={role === "super_admin" ? "completed" : "upcoming"}
+            size="sm"
+            className="font-medium"
+          >
             <ShieldCheck className="w-3 h-3 text-hpl-accent mr-1" />
-            <span className="capitalize">{role.replace("_", " ")}</span>
+            <span>{badgeText}</span>
           </Badge>
         </div>
         <RoleSwitcher />

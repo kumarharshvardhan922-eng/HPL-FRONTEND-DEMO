@@ -3,14 +3,18 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { Role, SportId, User } from "../types";
 import { useServices } from "./services-provider";
+import { canAccessSport } from "../utils/permissions";
+
+const DEV_ROLE_STORAGE_KEY = "hpl_dev_role";
 
 export interface AuthViewContextValue {
   currentUser: User | null;
   role: Role;
   assignedSportIds: SportId[];
+  assignedSports: SportId[];
   isLoading: boolean;
   switchRole: (role: Role, assignedSportIds?: SportId[]) => Promise<void>;
-  isPermittedForSport: (sportId: SportId) => boolean;
+  isPermittedForSport: (sportId: SportId | string) => boolean;
   canAccessAdminRoute: (route: string) => boolean;
 }
 
@@ -23,8 +27,24 @@ export const AuthViewProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const refreshUser = useCallback(async () => {
     try {
-      const u = await authView.getCurrentUser();
-      setCurrentUser(u);
+      // Check sessionStorage for persisted dev role
+      let savedRole: { role: Role; assignedSports?: SportId[] } | null = null;
+      try {
+        if (typeof window !== "undefined" && window.sessionStorage) {
+          const raw = window.sessionStorage.getItem(DEV_ROLE_STORAGE_KEY);
+          if (raw) savedRole = JSON.parse(raw);
+        }
+      } catch {
+        // Ignore sessionStorage read errors
+      }
+
+      if (savedRole?.role) {
+        const u = await authView.setRole(savedRole.role, savedRole.assignedSports);
+        setCurrentUser(u);
+      } else {
+        const u = await authView.getCurrentUser();
+        setCurrentUser(u);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -38,6 +58,18 @@ export const AuthViewProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     async (role: Role, assignedSportIds?: SportId[]) => {
       setIsLoading(true);
       try {
+        // Persist to sessionStorage
+        try {
+          if (typeof window !== "undefined" && window.sessionStorage) {
+            window.sessionStorage.setItem(
+              DEV_ROLE_STORAGE_KEY,
+              JSON.stringify({ role, assignedSports: assignedSportIds })
+            );
+          }
+        } catch {
+          // Ignore sessionStorage write errors
+        }
+
         const updated = await authView.setRole(role, assignedSportIds);
         setCurrentUser(updated);
       } finally {
@@ -48,25 +80,27 @@ export const AuthViewProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 
   const role: Role = currentUser?.role || "public";
-  const assignedSportIds: SportId[] = useMemo(() => currentUser?.assignedSportIds || [], [currentUser?.assignedSportIds]);
+  const assignedSportIds: SportId[] = useMemo(
+    () => currentUser?.assignedSports || currentUser?.assignedSportIds || [],
+    [currentUser?.assignedSports, currentUser?.assignedSportIds]
+  );
 
   const isPermittedForSport = useCallback(
-    (sportId: SportId): boolean => {
-      if (role === "super_admin") return true;
-      if (role === "sport_admin") {
-        return assignedSportIds.includes(sportId);
-      }
-      return false;
+    (sportId: SportId | string): boolean => {
+      return canAccessSport(currentUser, sportId as SportId);
     },
-    [role, assignedSportIds]
+    [currentUser]
   );
 
   const canAccessAdminRoute = useCallback(
     (route: string): boolean => {
       if (role === "super_admin") return true;
       if (role === "sport_admin") {
-        // Sport admins can access fixtures, scoring, and their assigned sports overview
-        if (route.startsWith("/admin/admins") || route.startsWith("/admin/settings")) {
+        if (
+          route.startsWith("/admin/admins") ||
+          route.startsWith("/admin/settings") ||
+          route.startsWith("/admin/sports")
+        ) {
           return false;
         }
         return true;
@@ -82,6 +116,7 @@ export const AuthViewProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         currentUser,
         role,
         assignedSportIds,
+        assignedSports: assignedSportIds,
         isLoading,
         switchRole,
         isPermittedForSport,
@@ -96,7 +131,16 @@ export const AuthViewProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export function useAuthView(): AuthViewContextValue {
   const ctx = useContext(AuthViewContext);
   if (!ctx) {
-    throw new Error("useAuthView must be used within an AuthViewProvider");
+    return {
+      currentUser: null,
+      role: "super_admin",
+      assignedSportIds: [],
+      assignedSports: [],
+      isLoading: false,
+      switchRole: async () => {},
+      isPermittedForSport: () => true,
+      canAccessAdminRoute: () => true,
+    };
   }
   return ctx;
 }
