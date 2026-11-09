@@ -15,6 +15,7 @@ export interface Sport {
   description: string;
   rulesSummary: string;
   activeMatchesCount: number;
+  isDemo?: boolean;
 }
 
 export interface User {
@@ -23,6 +24,7 @@ export interface User {
   displayName: string;
   role: Role;
   assignedSportIds?: SportId[]; // Only applicable for sport_admin
+  isDemo?: boolean;
 }
 
 export interface Team {
@@ -35,6 +37,7 @@ export interface Team {
   logoUrl?: string;
   captainId?: string;
   playerIds: string[];
+  isDemo?: boolean;
 }
 
 export interface Player {
@@ -46,6 +49,7 @@ export interface Player {
   role: string; // e.g. "Batsman", "Striker", "Raider", "Setter", "Guard"
   photoPlaceholderUrl?: string;
   stats?: Record<string, number | string>;
+  isDemo?: boolean;
 }
 
 export type MatchStatus = "upcoming" | "live" | "completed" | "abandoned";
@@ -59,6 +63,7 @@ export interface Fixture {
   round: string; // e.g. "Group Stage", "Semi-Final", "Final"
   scheduledStartTime: string; // ISO 8601 string
   venue: string; // e.g. "Main Sports Complex", "Hostel Ground 2"
+  isDemo?: boolean;
 }
 
 export interface ScoreEvent {
@@ -72,6 +77,7 @@ export interface ScoreEvent {
   playerId?: string;
   detail: string;
   isUndoable?: boolean;
+  isDemo?: boolean;
 }
 
 export interface Standing {
@@ -87,5 +93,6 @@ export interface Standing {
   goalDifference?: number; // Football
   scoreDifference?: number; // Kabaddi, Basketball, Badminton, Volleyball
   form: ("W" | "L" | "D" | "T")[];
+  isDemo?: boolean;
 }
 

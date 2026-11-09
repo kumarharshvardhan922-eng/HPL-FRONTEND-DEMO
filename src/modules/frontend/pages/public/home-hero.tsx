@@ -1,11 +1,25 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Activity, Calendar, Trophy, ChevronRight } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
+import { useMatches, useTeams } from "../../hooks";
+import { HPL_HOUSES } from "../../config/houses";
 
 export const HomeHero: React.FC = () => {
+  const { matches } = useMatches();
+  const { teams } = useTeams();
+  const activeHouses = teams.length > 0 ? teams : HPL_HOUSES;
+  const teamsMap = Object.fromEntries(activeHouses.map((t) => [t.id, t]));
+
+  const featuredMatch = matches.find((m) => m.status === "live") || matches[0];
+
+  const tA = featuredMatch ? teamsMap[featuredMatch.teamAId] : null;
+  const tB = featuredMatch ? teamsMap[featuredMatch.teamBId] : null;
+
   return (
     <section className="relative overflow-hidden py-14 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-hpl-border/60 bg-transparent">
       {/* Subtle stadium light enhancement */}
@@ -14,7 +28,7 @@ export const HomeHero: React.FC = () => {
       <div className="absolute bottom-10 left-10 w-72 h-72 bg-hpl-border/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto flex flex-col items-center text-center relative z-10 space-y-6">
-        {/* Large Logo Centered Above Wordmark (Change 3) */}
+        {/* Large Logo Centered Above Wordmark */}
         <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-hpl-accent/60 shadow-glow bg-white shrink-0 mb-2">
           <Image
             src="/hpl-logo.png"
@@ -26,7 +40,7 @@ export const HomeHero: React.FC = () => {
           />
         </div>
 
-        {/* Hero Wordmark (Change 1 - Image 1 Look) */}
+        {/* Hero Wordmark */}
         <div className="flex flex-col items-center">
           <div className="font-display tracking-widest text-4xl sm:text-6xl md:text-7xl font-black uppercase flex flex-wrap items-center justify-center gap-2 sm:gap-4 leading-none">
             <span className="text-white/60">HOSTEL</span>
@@ -40,19 +54,34 @@ export const HomeHero: React.FC = () => {
           </span>
         </div>
 
+        {/* 7 Competing Houses Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+          {activeHouses.map((h) => (
+            <Link key={h.id} href={`/teams/${h.id}`} className="group">
+              <span
+                className="w-7 h-7 rounded-lg text-white font-bold text-xs flex items-center justify-center border border-white/20 transition-transform group-hover:scale-110 shadow-xs"
+                style={{ backgroundColor: h.primaryColor || "#38b6ff" }}
+                title={h.name}
+              >
+                {h.shortName}
+              </span>
+            </Link>
+          ))}
+        </div>
+
         {/* Subtitle / Description */}
         <p className="max-w-2xl text-sm sm:text-base text-hpl-muted leading-relaxed">
           Official real-time tournament intelligence platform. Live overs and ball-by-ball cricket,
           football pitch lineups and stats, raid points for kabaddi, badminton, volleyball, and basketball
-          across all 7 houses.
+          across all 7 championship houses.
         </p>
 
         {/* Action CTAs */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <Link href="/matches/match-cricket-live-1">
+          <Link href={featuredMatch ? `/matches/${featuredMatch.id}` : "/fixtures"}>
             <Button variant="primary" size="lg" className="shadow-glow font-bold">
               <Activity className="w-4 h-4 mr-2 animate-pulse" />
-              Live Match Centre
+              {featuredMatch ? "Match Centre" : "Fixtures Calendar"}
             </Button>
           </Link>
           <Link href="/fixtures">
@@ -69,42 +98,66 @@ export const HomeHero: React.FC = () => {
           </Link>
         </div>
 
-        {/* Live Now Quick Card Preview with Real Houses */}
-        <div className="w-full max-w-md mt-6 bg-hpl-surface/90 backdrop-blur-md rounded-2xl p-4 border border-hpl-border shadow-card text-left">
-          <div className="flex items-center justify-between pb-3 border-b border-hpl-border">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-hpl-accent">Cricket • Match 1</span>
-              <span className="text-xs text-hpl-muted">• Oval Ground</span>
-            </div>
-            <Badge variant="live" size="sm">LIVE NOW</Badge>
-          </div>
-          <div className="space-y-2.5 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-amber-500 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                  AL
-                </div>
-                <span className="text-sm font-bold text-white truncate">Arkavati Lions</span>
+        {/* Match Card Preview if match exists, or clean empty announcement */}
+        {featuredMatch && tA && tB ? (
+          <div className="w-full max-w-md mt-4 bg-hpl-surface/90 backdrop-blur-md rounded-2xl p-4 border border-hpl-border shadow-card text-left">
+            <div className="flex items-center justify-between pb-3 border-b border-hpl-border">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-hpl-accent capitalize">
+                  {featuredMatch.sportId} • {featuredMatch.round}
+                </span>
               </div>
-              <span className="font-mono font-bold text-sm text-white tabular-nums">168/4 (18.2)</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                  HJ
-                </div>
-                <span className="text-sm font-bold text-white truncate">Harangi Jaguars</span>
+              <div className="flex items-center gap-1.5">
+                {featuredMatch.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
+                <Badge variant={featuredMatch.status === "live" ? "live" : "completed"} size="sm">
+                  {featuredMatch.status.toUpperCase()}
+                </Badge>
               </div>
-              <span className="font-mono font-bold text-sm text-white tabular-nums">172/7 (20.0)</span>
             </div>
+            <div className="space-y-2.5 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className="w-7 h-7 rounded-lg text-white font-bold text-xs flex items-center justify-center shrink-0 border border-white/20"
+                    style={{ backgroundColor: tA.primaryColor || "#f59e0b" }}
+                  >
+                    {tA.shortName}
+                  </div>
+                  <span className="text-sm font-bold text-white truncate">{tA.name}</span>
+                </div>
+                <span className="font-mono font-bold text-sm text-white tabular-nums">
+                  {"runsA" in featuredMatch.scoreState ? `${featuredMatch.scoreState.runsA}/${featuredMatch.scoreState.wicketsA}` : ""}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className="w-7 h-7 rounded-lg text-white font-bold text-xs flex items-center justify-center shrink-0 border border-white/20"
+                    style={{ backgroundColor: tB.primaryColor || "#06b6d4" }}
+                  >
+                    {tB.shortName}
+                  </div>
+                  <span className="text-sm font-bold text-white truncate">{tB.name}</span>
+                </div>
+                <span className="font-mono font-bold text-sm text-white tabular-nums">
+                  {"runsB" in featuredMatch.scoreState ? `${featuredMatch.scoreState.runsB}/${featuredMatch.scoreState.wicketsB}` : ""}
+                </span>
+              </div>
+            </div>
+            <Link href={`/matches/${featuredMatch.id}`} className="block pt-1">
+              <div className="w-full py-1.5 px-3 rounded-xl bg-hpl-surface-2 hover:bg-hpl-border text-center text-xs font-semibold text-hpl-accent transition-colors flex items-center justify-center gap-1">
+                <span>View Full Scorecard</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </Link>
           </div>
-          <Link href="/matches/match-cricket-live-1" className="block pt-1">
-            <div className="w-full py-1.5 px-3 rounded-xl bg-hpl-surface-2 hover:bg-hpl-border text-center text-xs font-semibold text-hpl-accent transition-colors flex items-center justify-center gap-1">
-              <span>View Full Live Scorecard</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </div>
-          </Link>
-        </div>
+        ) : (
+          <div className="w-full max-w-md mt-4 bg-hpl-surface/80 backdrop-blur-md rounded-2xl p-4 border border-hpl-border text-center">
+            <p className="text-xs text-hpl-muted">
+              Tournament schedule in preparation • No active fixtures right now
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { CricketPublicScoreboard } from "../../components/scoreboards/cricket/cricket-public";
 import { FootballPublicScoreboard } from "../../components/scoreboards/football/football-public";
 import { ScoreboardShell } from "../../components/scoreboards/scoreboard-shell";
-import { SAMPLE_CRICKET_LIVE, SAMPLE_FOOTBALL_LIVE } from "../../mocks/matches-data";
+import { SAMPLE_CRICKET_LIVE, SAMPLE_FOOTBALL_LIVE } from "../../__tests__/fixtures";
 import { Match, Team } from "../../types";
 
 const mockTeamA: Team = {

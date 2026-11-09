@@ -11,14 +11,23 @@ import {
   TeamsService,
 } from "../types";
 import {
-  MockAuthViewService,
-  MockMatchesService,
-  MockPlayersService,
-  MockScoringService,
-  MockSportsService,
-  MockStandingsService,
-  MockTeamsService,
-} from "../services";
+  EmptyAuthViewService,
+  EmptyMatchesService,
+  EmptyPlayersService,
+  EmptyScoringService,
+  EmptySportsService,
+  EmptyStandingsService,
+  EmptyTeamsService,
+} from "../services/empty";
+import {
+  DemoAuthViewService,
+  DemoMatchesService,
+  DemoPlayersService,
+  DemoScoringService,
+  DemoSportsService,
+  DemoStandingsService,
+  DemoTeamsService,
+} from "../services/demo";
 
 export interface ServicesContextValue {
   sports: SportsService;
@@ -28,28 +37,51 @@ export interface ServicesContextValue {
   scoring: ScoringService;
   standings: StandingsService;
   authView: AuthViewService;
+  isDemoMode: boolean;
 }
 
 const ServicesContext = createContext<ServicesContextValue | null>(null);
 
 export interface ServicesProviderProps {
   children: React.ReactNode;
-  customServices?: Partial<ServicesContextValue>;
+  customServices?: Partial<Omit<ServicesContextValue, "isDemoMode">>;
+  isDemo?: boolean;
 }
 
-export const ServicesProvider: React.FC<ServicesProviderProps> = ({ children, customServices }) => {
-  // Single-point service factory: easily swapped for real API implementations
+export const ServicesProvider: React.FC<ServicesProviderProps> = ({
+  children,
+  customServices,
+  isDemo,
+}) => {
+  // Demo switch: NEXT_PUBLIC_FRONTEND_DEMO=1 loads the single showcase exhibition match.
+  // Default: returns empty services satisfying all domain interfaces with zero data.
+  const isDemoMode = isDemo ?? (process.env.NEXT_PUBLIC_FRONTEND_DEMO === "1");
+
   const services = useMemo<ServicesContextValue>(() => {
+    if (isDemoMode) {
+      return {
+        sports: customServices?.sports ?? new DemoSportsService(),
+        teams: customServices?.teams ?? new DemoTeamsService(),
+        players: customServices?.players ?? new DemoPlayersService(),
+        matches: customServices?.matches ?? new DemoMatchesService(),
+        scoring: customServices?.scoring ?? new DemoScoringService(),
+        standings: customServices?.standings ?? new DemoStandingsService(),
+        authView: customServices?.authView ?? new DemoAuthViewService(),
+        isDemoMode: true,
+      };
+    }
+
     return {
-      sports: customServices?.sports ?? new MockSportsService(),
-      teams: customServices?.teams ?? new MockTeamsService(),
-      players: customServices?.players ?? new MockPlayersService(),
-      matches: customServices?.matches ?? new MockMatchesService(),
-      scoring: customServices?.scoring ?? new MockScoringService(),
-      standings: customServices?.standings ?? new MockStandingsService(),
-      authView: customServices?.authView ?? new MockAuthViewService(),
+      sports: customServices?.sports ?? new EmptySportsService(),
+      teams: customServices?.teams ?? new EmptyTeamsService(),
+      players: customServices?.players ?? new EmptyPlayersService(),
+      matches: customServices?.matches ?? new EmptyMatchesService(),
+      scoring: customServices?.scoring ?? new EmptyScoringService(),
+      standings: customServices?.standings ?? new EmptyStandingsService(),
+      authView: customServices?.authView ?? new EmptyAuthViewService(),
+      isDemoMode: false,
     };
-  }, [customServices]);
+  }, [customServices, isDemoMode]);
 
   return <ServicesContext.Provider value={services}>{children}</ServicesContext.Provider>;
 };
@@ -61,4 +93,3 @@ export function useServices(): ServicesContextValue {
   }
   return ctx;
 }
-

@@ -5,6 +5,7 @@ import { useSports, useStandings } from "../../hooks";
 import { SportId } from "../../types";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
+import { Badge } from "../../components/ui/badge";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Trophy } from "lucide-react";
 
@@ -53,6 +54,11 @@ export const StandingsPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-hpl-gold" />
                 <span className="capitalize">{activeSport} Leaderboard</span>
+                {standings.some((s) => s.isDemo) && (
+                  <Badge variant="warning" size="sm">
+                    Demo Data
+                  </Badge>
+                )}
               </div>
               <span className="text-xs font-normal text-hpl-muted">Top 4 qualify for semi-finals</span>
             </CardTitle>

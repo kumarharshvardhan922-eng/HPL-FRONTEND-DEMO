@@ -10,7 +10,7 @@ import {
   SAMPLE_BADMINTON_LIVE,
   SAMPLE_VOLLEYBALL_LIVE,
   SAMPLE_BASKETBALL_LIVE,
-} from "../../mocks/matches-data";
+} from "../../__tests__/fixtures";
 import { Match, Team } from "../../types";
 
 const mockTeamA: Team = {

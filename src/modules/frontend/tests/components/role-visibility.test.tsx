@@ -4,11 +4,11 @@ import { render, screen } from "@testing-library/react";
 import { AdminLayout } from "../../components/layout/admin-layout";
 import { ServicesProvider } from "../../providers/services-provider";
 import { AuthViewProvider } from "../../providers/auth-view-provider";
-import { MockAuthViewService } from "../../services/mock/mock-auth-view-service";
+import { EmptyAuthViewService } from "../../services/empty";
 
 describe("Role-Based Visibility and Access Guard", () => {
   it("renders access restriction banner when role is public", async () => {
-    const authService = new MockAuthViewService();
+    const authService = new EmptyAuthViewService();
     await authService.setRole("public");
 
     render(
@@ -26,7 +26,7 @@ describe("Role-Based Visibility and Access Guard", () => {
   });
 
   it("renders full admin console when role is super_admin", async () => {
-    const authService = new MockAuthViewService();
+    const authService = new EmptyAuthViewService();
     await authService.setRole("super_admin");
 
     render(

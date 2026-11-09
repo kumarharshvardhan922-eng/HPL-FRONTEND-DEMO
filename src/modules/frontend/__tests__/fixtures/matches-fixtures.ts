@@ -1,6 +1,12 @@
-import { CricketScoreState, FootballScoreState, KabaddiScoreState, BadmintonScoreState, VolleyballScoreState, BasketballScoreState } from "../types";
+import {
+  CricketScoreState,
+  FootballScoreState,
+  KabaddiScoreState,
+  BadmintonScoreState,
+  VolleyballScoreState,
+  BasketballScoreState,
+} from "../../types";
 
-// Realistic sample score states for each sport with real house IDs
 export const SAMPLE_CRICKET_LIVE: CricketScoreState = {
   sportId: "cricket",
   runsA: 168,
@@ -152,3 +158,4 @@ export const SAMPLE_BASKETBALL_LIVE: BasketballScoreState = {
     "p-orsang-1": { points: 21, fouls: 4, rebounds: 5, assists: 7 },
   },
 };
+

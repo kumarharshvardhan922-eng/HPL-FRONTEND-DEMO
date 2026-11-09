@@ -200,5 +200,6 @@ export interface Match {
   scoreState: AnySportScoreState;
   events: ScoreEvent[];
   lastUpdated: string; // ISO timestamp
+  isDemo?: boolean;
 }
 

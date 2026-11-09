@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useSports, useMatches, useTeams, useStandings } from "../../hooks";
+import { useServices } from "../../providers";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Skeleton } from "../../components/ui/skeleton";
@@ -11,8 +12,10 @@ import { formatDateTime } from "../../utils/formatters";
 import { SportId } from "../../types";
 import { HomeHero } from "./home-hero";
 import { HomeLiveCard } from "./home-live-card";
+import { SHOWCASE_TOP_PERFORMER } from "../../showcase/showcase";
 
 export const HomePage: React.FC = () => {
+  const { isDemoMode } = useServices();
   const { sports } = useSports();
   const { matches, isLoading: matchesLoading } = useMatches();
   const { teams } = useTeams();
@@ -95,8 +98,11 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-2">
               <Card variant="default">
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold capitalize text-white">
-                    {selectedSport} Points Table
+                  <CardTitle className="text-sm font-bold capitalize text-white flex items-center justify-between">
+                    <span>{selectedSport} Points Table</span>
+                    {standings.some((s) => s.isDemo) && (
+                      <Badge variant="warning" size="sm">Demo Data</Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto">
@@ -131,30 +137,34 @@ export const HomePage: React.FC = () => {
             {/* Top Performers Spotlight */}
             <div>
               <Card variant="default" className="p-5 space-y-4 bg-hpl-surface border-hpl-border">
-                <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-hpl-gold" />
-                  <h3 className="text-sm font-bold text-white font-display">House MVP Spotlight</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-5 h-5 text-hpl-gold" />
+                    <h3 className="text-sm font-bold text-white font-display">House MVP Spotlight</h3>
+                  </div>
+                  {isDemoMode && <Badge variant="warning" size="sm">Demo Data</Badge>}
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-hpl-surface-2 rounded-xl border border-hpl-border">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500 text-white font-bold flex items-center justify-center text-xs shrink-0">
-                      AL
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Aarav Sharma</div>
-                      <div className="text-[10px] text-hpl-muted">Arkavati Lions • Cricket Striker (160.8 SR)</div>
+
+                {isDemoMode ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-hpl-surface-2 rounded-xl border border-hpl-border">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500 text-white font-bold flex items-center justify-center text-xs shrink-0">
+                        {SHOWCASE_TOP_PERFORMER.houseCode}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white">{SHOWCASE_TOP_PERFORMER.name}</div>
+                        <div className="text-[10px] text-hpl-muted">
+                          {SHOWCASE_TOP_PERFORMER.houseName} • {SHOWCASE_TOP_PERFORMER.sport} ({SHOWCASE_TOP_PERFORMER.highlight})
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-hpl-surface-2 rounded-xl border border-hpl-border">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shrink-0">
-                      HJ
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Kabir Verma</div>
-                      <div className="text-[10px] text-hpl-muted">Harangi Jaguars • Football Midfielder (8.4 Rating)</div>
-                    </div>
+                ) : (
+                  <div className="p-4 bg-hpl-surface-2 rounded-xl border border-hpl-border text-center text-xs text-hpl-muted">
+                    No MVP awards logged yet. Player highlights will appear here after matches conclude.
                   </div>
-                </div>
+                )}
+
                 <Link href="/standings" className="block text-center text-xs font-bold text-hpl-accent hover:text-hpl-accent-soft pt-1">
                   Full Leaderboard & Standings →
                 </Link>
@@ -175,17 +185,26 @@ export const HomePage: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {upcomingMatches.map((m) => (
-                <div key={m.id} className="p-3 rounded-xl bg-hpl-surface-2 border border-hpl-border flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-white">
-                      {teamsMap[m.teamAId]?.shortName || "A"} vs {m.teamBId === "bye" ? "BYE" : teamsMap[m.teamBId]?.shortName || "B"}
-                    </span>
-                    <div className="text-[10px] text-hpl-muted capitalize">{m.sportId} • {m.venue}</div>
-                  </div>
-                  <span className="font-mono text-hpl-accent font-semibold">{formatDateTime(m.startTime)}</span>
+              {upcomingMatches.length === 0 ? (
+                <div className="p-4 text-center text-xs text-hpl-muted bg-hpl-surface-2 rounded-xl border border-hpl-border">
+                  No upcoming matches scheduled. Check fixtures calendar soon.
                 </div>
-              ))}
+              ) : (
+                upcomingMatches.map((m) => (
+                  <div key={m.id} className="p-3 rounded-xl bg-hpl-surface-2 border border-hpl-border flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-white">
+                        {teamsMap[m.teamAId]?.shortName || "A"} vs {m.teamBId === "bye" ? "BYE" : teamsMap[m.teamBId]?.shortName || "B"}
+                      </span>
+                      <div className="text-[10px] text-hpl-muted capitalize">{m.sportId} • {m.venue}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {m.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
+                      <span className="font-mono text-hpl-accent font-semibold">{formatDateTime(m.startTime)}</span>
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -194,17 +213,26 @@ export const HomePage: React.FC = () => {
               <CardTitle className="text-sm font-bold">Recent Results</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recentResults.map((m) => (
-                <div key={m.id} className="p-3 rounded-xl bg-hpl-surface-2 border border-hpl-border flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-white">
-                      {teamsMap[m.teamAId]?.name || "A"} vs {teamsMap[m.teamBId]?.name || "B"}
-                    </span>
-                    <div className="text-[10px] text-hpl-muted">{m.resultSummary || "Completed Match"}</div>
-                  </div>
-                  <Badge variant="completed" size="sm">FT</Badge>
+              {recentResults.length === 0 ? (
+                <div className="p-4 text-center text-xs text-hpl-muted bg-hpl-surface-2 rounded-xl border border-hpl-border">
+                  No completed matches recorded yet. Match summaries will appear here once finalized.
                 </div>
-              ))}
+              ) : (
+                recentResults.map((m) => (
+                  <div key={m.id} className="p-3 rounded-xl bg-hpl-surface-2 border border-hpl-border flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-white">
+                        {teamsMap[m.teamAId]?.name || "A"} vs {teamsMap[m.teamBId]?.name || "B"}
+                      </span>
+                      <div className="text-[10px] text-hpl-muted">{m.resultSummary || "Completed Match"}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {m.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
+                      <Badge variant="completed" size="sm">FT</Badge>
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </section>

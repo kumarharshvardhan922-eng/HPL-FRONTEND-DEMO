@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Team, Player, Match } from "../../types";
 import { useServices } from "../../providers";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
@@ -103,6 +104,7 @@ export const TeamDetailPage: React.FC<TeamDetailPageProps> = ({ teamId }) => {
                   {team.shortName}
                 </span>
                 <span className="text-xs text-hpl-muted font-medium">{team.hostelBlock}</span>
+                {team.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
               </div>
               <h1 className="text-2xl sm:text-3xl font-black mt-1 leading-tight font-display text-white">{team.name}</h1>
             </div>
@@ -138,6 +140,10 @@ export const TeamDetailPage: React.FC<TeamDetailPageProps> = ({ teamId }) => {
               <EmptyState
                 title="No athletes registered for this house"
                 description="This house currently has no active player roster allocated in the tournament database."
+                actionLabel="Add Player (Admin)"
+                onAction={() => {
+                  window.location.href = "/admin/players";
+                }}
               />
             </div>
           ) : (

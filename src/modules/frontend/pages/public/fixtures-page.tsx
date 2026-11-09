@@ -120,18 +120,21 @@ export const FixturesPage: React.FC = () => {
                               </span>
                               <span className="text-hpl-muted font-medium">{m.round}</span>
                             </div>
-                            <Badge
-                              variant={
-                                m.status === "live"
-                                  ? "live"
-                                  : m.status === "completed"
-                                  ? "completed"
-                                  : "upcoming"
-                              }
-                              size="sm"
-                            >
-                              {m.status.toUpperCase()}
-                            </Badge>
+                            <div className="flex items-center gap-1.5">
+                              {m.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
+                              <Badge
+                                variant={
+                                  m.status === "live"
+                                    ? "live"
+                                    : m.status === "completed"
+                                    ? "completed"
+                                    : "upcoming"
+                                }
+                                size="sm"
+                              >
+                                {m.status.toUpperCase()}
+                              </Badge>
+                            </div>
                           </div>
 
                           <div className="py-3 flex items-center justify-between gap-4">

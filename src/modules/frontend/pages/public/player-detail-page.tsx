@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Player, Team } from "../../types";
 import { useServices } from "../../providers";
 import { Card } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/skeleton";
 import { ErrorState } from "../../components/ui/error-state";
@@ -105,6 +106,7 @@ export const PlayerDetailPage: React.FC<PlayerDetailPageProps> = ({ playerId }) 
                 {player.sportId}
               </span>
               <span className="text-xs text-hpl-muted font-medium">{player.role}</span>
+              {player.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
             </div>
             <h1 className="text-2xl sm:text-4xl font-black font-display text-white">{player.name}</h1>
             <p className="text-xs sm:text-sm text-hpl-muted">

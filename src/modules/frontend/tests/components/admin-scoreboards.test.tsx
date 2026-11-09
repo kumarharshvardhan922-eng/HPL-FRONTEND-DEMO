@@ -1,10 +1,11 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { CricketAdminConsole } from "../../components/scoreboards/cricket/cricket-admin";
 import { FootballAdminConsole } from "../../components/scoreboards/football/football-admin";
 import { KabaddiAdminConsole } from "../../components/scoreboards/kabaddi/kabaddi-admin";
 import { ServicesProvider } from "../../providers/services-provider";
-import { SAMPLE_CRICKET_LIVE, SAMPLE_FOOTBALL_LIVE, SAMPLE_KABADDI_LIVE } from "../../mocks/matches-data";
+import { SAMPLE_CRICKET_LIVE, SAMPLE_FOOTBALL_LIVE, SAMPLE_KABADDI_LIVE } from "../../__tests__/fixtures";
 import { Match, Team } from "../../types";
 
 const mockTeamA: Team = {

@@ -1,30 +1,30 @@
 import { AuthViewService, Role, SportId, User, ValidationError } from "../../types";
-import { MOCK_USERS } from "../../mocks/admins-data";
-import { deepClone, simulateLatency } from "./mock-utils";
 
-export class MockAuthViewService implements AuthViewService {
-  private users: User[] = deepClone(MOCK_USERS);
-  // Default to Super Admin so all initial flows are demonstrable
-  private currentUser: User = deepClone(this.users[0]);
+export class EmptyAuthViewService implements AuthViewService {
+  private currentUser: User = {
+    id: "user-default-admin",
+    email: "admin@hpl.ac.in",
+    displayName: "Tournament Director",
+    role: "super_admin",
+  };
+
+  private admins: User[] = [this.currentUser];
 
   async getCurrentUser(): Promise<User> {
-    await simulateLatency(100, 250);
-    return deepClone(this.currentUser);
+    return { ...this.currentUser };
   }
 
   async setRole(role: Role, assignedSportIds?: SportId[]): Promise<User> {
-    await simulateLatency(100, 250);
     this.currentUser = {
       ...this.currentUser,
       role,
       assignedSportIds: role === "sport_admin" ? (assignedSportIds || ["cricket"]) : undefined,
     };
-    return deepClone(this.currentUser);
+    return { ...this.currentUser };
   }
 
   async getAdmins(): Promise<User[]> {
-    await simulateLatency();
-    return deepClone(this.users.filter((u) => u.role !== "public"));
+    return [...this.admins];
   }
 
   async inviteAdmin(input: {
@@ -33,7 +33,6 @@ export class MockAuthViewService implements AuthViewService {
     role: Role;
     assignedSportIds?: SportId[];
   }): Promise<User> {
-    await simulateLatency();
     if (!input.email || !input.email.includes("@")) {
       throw new ValidationError("Valid email address required.", { email: "Invalid email format" });
     }
@@ -44,8 +43,8 @@ export class MockAuthViewService implements AuthViewService {
       role: input.role,
       assignedSportIds: input.assignedSportIds,
     };
-    this.users.push(newUser);
-    return deepClone(newUser);
+    this.admins.push(newUser);
+    return { ...newUser };
   }
 }
 

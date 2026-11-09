@@ -24,7 +24,7 @@ Typography:
 
 ## Championship Houses (7 Real Competing Houses)
 
-All mock hostels are replaced by the 7 real houses with dedicated brand colors and 14–16 fictional athlete rosters:
+All legacy hostels have been replaced with the 7 real official houses with dedicated brand colors:
 1. **Arkavati Lions** (`AL` - Gold/Amber `#f59e0b`)
 2. **Harangi Jaguars** (`HJ` - Emerald `#10b981`)
 3. **Kabini Lynx** (`KL` - Electric Cyan `#38b6ff`)
@@ -33,9 +33,18 @@ All mock hostels are replaced by the 7 real houses with dedicated brand colors a
 6. **Shimsha Panthers** (`SP` - Magenta `#ec4899`)
 7. **Tons Tigers** (`TT` - Deep Teal `#06b6d4`)
 
-Standings leaderboard strictly matches Image 2. Fixtures support odd-team scheduling with graceful "Bye" round states.
+These 7 houses are centralized in `config/houses.ts` and sports in `config/sports.ts`. Standings leaderboards show the real houses (with 0-point baselines when no games are played).
 
-## How to Swap Mock Services for Real APIs
+## Default Empty Services & Showcase Exhibition Switch
+
+The platform defaults to production-ready `EmptyServices` in `services/empty/`. All fake mock players, fixtures, standings, and latency simulations have been completely removed.
+
+- **Default (Clean Empty States)**:
+  `ServicesProvider` loads `EmptyServices` (`EmptyMatchesService`, `EmptyTeamsService`, etc.). Pages display clean, graceful empty state cards ("No live matches currently underway", "No fixtures found", "No MVP awards logged yet"), and house forms render the 7 official championship houses.
+- **Showcase Demo Switch (`NEXT_PUBLIC_FRONTEND_DEMO=1`)**:
+  When `NEXT_PUBLIC_FRONTEND_DEMO=1` is set in the environment, `ServicesProvider` loads `DemoServices` containing exactly ONE completed Cricket showcase match between Arkavati Lions and Tons Tigers (`match-demo-showcase`), labeled with a prominent `Demo Data` badge.
+
+## How to Plug in Real APIs
 
 All components consume data exclusively through the domain service interfaces defined in `src/modules/frontend/types/services.ts`.
 
@@ -74,4 +83,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   );
 }
 ```
-Zero component modifications are needed when transitioning from mock data to real backend APIs.
+Zero component modifications are needed when transitioning to real backend APIs.

@@ -48,7 +48,12 @@ export const ScoreboardShell: React.FC<ScoreboardShellProps> = ({
           <span className="font-medium text-hpl-accent">{match.round}</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {match.isDemo && (
+            <Badge variant="warning" size="sm">
+              Demo Data
+            </Badge>
+          )}
           {isLive ? (
             <Badge variant="live" size="sm" aria-live="polite">
               <Radio className="w-3 h-3 mr-1 animate-pulse" />

@@ -44,7 +44,10 @@ export const HomeLiveCard: React.FC<HomeLiveCardProps> = ({ match: m, teamA: tA,
           <span className="font-bold text-hpl-accent uppercase text-[10px] bg-hpl-surface-2 px-2 py-0.5 rounded border border-hpl-border">
             {m.sportId}
           </span>
-          <Badge variant="live" size="sm">LIVE</Badge>
+          <div className="flex items-center gap-1.5">
+            {m.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
+            <Badge variant="live" size="sm">LIVE</Badge>
+          </div>
         </div>
 
         {/* 3-Column Aligned Row */}
