@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLiveMatch, useTeams, useStandings, usePlayers } from "../../hooks";
+import { useLiveMatch, useTeams, useStandings } from "../../hooks";
+import { useServices } from "../../providers";
 import { useAuthView } from "../../providers/auth-view-provider";
 import {
   ScoreHeaderCard,
@@ -34,12 +35,23 @@ export interface MatchPageProps {
 export const MatchPage: React.FC<MatchPageProps> = ({ matchId }) => {
   const router = useRouter();
   const { match, isLoading, error, lastUpdated } = useLiveMatch(matchId);
+  const { players: playersService } = useServices();
   const { teams } = useTeams();
-  const { players } = usePlayers();
+  const [teamAPlayers, setTeamAPlayers] = useState<Player[]>([]);
+  const [teamBPlayers, setTeamBPlayers] = useState<Player[]>([]);
   const { isPermittedForSport } = useAuthView();
   const { standings } = useStandings(match?.sportId || "cricket");
   const [activeTab, setActiveTab] = useState<string>("stats");
   const [showMenu, setShowMenu] = useState(false);
+
+  useEffect(() => {
+    if (match) {
+      playersService.getPlayers({ teamId: match.teamAId }).then(setTeamAPlayers).catch(() => {});
+      if (match.teamBId && match.teamBId !== "bye") {
+        playersService.getPlayers({ teamId: match.teamBId }).then(setTeamBPlayers).catch(() => {});
+      }
+    }
+  }, [match, playersService]);
 
   if (isLoading) {
     return (
@@ -72,9 +84,6 @@ export const MatchPage: React.FC<MatchPageProps> = ({ matchId }) => {
   const teamB = teams.find((t) => t.id === match.teamBId);
   const teamsMap = Object.fromEntries(teams.map((t) => [t.id, t]));
   const canScore = isPermittedForSport(match.sportId);
-
-  const teamAPlayers = players.filter((p) => p.teamId === match.teamAId);
-  const teamBPlayers = players.filter((p) => p.teamId === match.teamBId);
 
   // Per-sport stats mapping
   const renderSportStats = () => {

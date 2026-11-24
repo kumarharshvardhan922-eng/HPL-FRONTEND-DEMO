@@ -11,6 +11,10 @@ declare module "vitest" {
   export const afterAll: any;
 }
 
+declare module "vitest/config" {
+  export const defineConfig: any;
+}
+
 declare module "@testing-library/react" {
   export const render: any;
   export const screen: any;
@@ -18,4 +22,5 @@ declare module "@testing-library/react" {
   export const waitFor: any;
   export const cleanup: any;
   export const act: any;
+  export const within: any;
 }

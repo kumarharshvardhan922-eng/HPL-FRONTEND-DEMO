@@ -11,6 +11,7 @@ export * from "./pill-tabs";
 export * from "./bottom-tab-bar";
 export * from "./cricket/cricket-public";
 export * from "./cricket/cricket-admin";
+export * from "./football/football-pitch-lineup";
 export * from "./football/football-public";
 export * from "./football/football-admin";
 export * from "./kabaddi/kabaddi-public";
