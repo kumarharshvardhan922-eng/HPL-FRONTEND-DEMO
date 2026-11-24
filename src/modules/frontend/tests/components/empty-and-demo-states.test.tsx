@@ -134,7 +134,7 @@ describe("Empty States, Demo Showcase, and Real Houses Configuration", () => {
 
     const select = container.querySelector("select");
     expect(select).not.toBeNull();
-    const options = Array.from(select?.querySelectorAll("option") || []).map((o) => o.textContent);
+    const options = Array.from(select?.querySelectorAll("option") || []).map((o: any) => o.textContent);
     for (const house of HPL_HOUSES) {
       expect(options).toContain(house.name);
     }

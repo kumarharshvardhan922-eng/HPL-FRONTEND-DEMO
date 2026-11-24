@@ -2,24 +2,25 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSports, useMatches, useTeams, useStandings } from "../../hooks";
 import { SportId } from "../../types";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
 import { Tabs } from "../../components/ui/tabs";
 import { SearchBar } from "../../components/ui/search-bar";
 import { Skeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { ErrorState } from "../../components/ui/error-state";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
-import { Trophy, ArrowRight } from "lucide-react";
-import { formatDateTime, getInitials } from "../../utils/formatters";
+import { Trophy } from "lucide-react";
+import { SportChipRow, MatchRow } from "../../components/scoreboards";
 
 export interface SportPageProps {
   sportId: SportId;
 }
 
 export const SportPage: React.FC<SportPageProps> = ({ sportId }) => {
+  const router = useRouter();
   const { sports } = useSports();
   const { matches, isLoading: matchesLoading, error, refetch } = useMatches({ sportId });
   const { teams } = useTeams();
@@ -60,22 +61,34 @@ export const SportPage: React.FC<SportPageProps> = ({ sportId }) => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Sport Navigation Chip Row */}
+      <SportChipRow
+        sports={sports}
+        selectedSportId={sportId}
+        onSelectSport={(id) => {
+          if (id !== "all") router.push(`/sports/${id}`);
+          else router.push("/fixtures");
+        }}
+        includeAll={true}
+        allLabel="All Sports"
+      />
+
       {/* Sport Title & Rules Summary Card */}
-      <div className="bg-hpl-surface text-white p-6 sm:p-8 rounded-2xl shadow-card border border-hpl-border relative overflow-hidden">
+      <div className="bg-[rgba(11,26,40,0.78)] text-white p-6 sm:p-7 rounded-2xl shadow-card border border-hpl-border relative overflow-hidden backdrop-blur-md">
         <div className="absolute top-0 right-0 w-80 h-80 bg-hpl-accent/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
-          <div className="space-y-2 max-w-2xl">
+          <div className="space-y-1.5 max-w-xl">
             <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-hpl-gold" />
-              <span className="text-xs font-bold uppercase tracking-wider text-hpl-accent">Sport Discipline</span>
+              <Trophy className="w-4 h-4 text-hpl-gold" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-hpl-accent">Championship Discipline</span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black capitalize tracking-tight font-display text-white">
-              {sport.name} Championship
+            <h1 className="text-2xl sm:text-3xl font-black capitalize tracking-tight font-display text-white">
+              {sport.name}
             </h1>
-            <p className="text-xs sm:text-sm text-hpl-muted leading-relaxed">{sport.description}</p>
+            <p className="text-xs text-hpl-muted leading-relaxed">{sport.description}</p>
           </div>
-          <div className="bg-hpl-surface-2 p-4 rounded-xl border border-hpl-border max-w-sm">
+          <div className="bg-hpl-surface-2/80 p-3.5 rounded-xl border border-hpl-border max-w-sm">
             <span className="text-[10px] font-bold uppercase text-hpl-accent tracking-wider font-display">
               Tournament Rules
             </span>
@@ -109,10 +122,10 @@ export const SportPage: React.FC<SportPageProps> = ({ sportId }) => {
 
         {/* Content Area */}
         {matchesLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Skeleton className="h-44 rounded-2xl" />
-            <Skeleton className="h-44 rounded-2xl" />
-            <Skeleton className="h-44 rounded-2xl" />
+          <div className="space-y-3">
+            <Skeleton className="h-16 rounded-2xl" />
+            <Skeleton className="h-16 rounded-2xl" />
+            <Skeleton className="h-16 rounded-2xl" />
           </div>
         ) : error ? (
           <ErrorState message={error} onRetry={refetch} />
@@ -158,83 +171,15 @@ export const SportPage: React.FC<SportPageProps> = ({ sportId }) => {
             description="Try modifying search criteria or switch between Live, Upcoming, and Completed tabs."
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredMatches.map((m) => {
-              const tA = teamsMap[m.teamAId];
-              const tB = teamsMap[m.teamBId];
-              const codeA = tA?.shortName || getInitials(tA?.name || m.teamAId);
-              const isBye = m.teamBId === "bye";
-              const codeB = isBye ? "BYE" : tB?.shortName || getInitials(tB?.name || m.teamBId);
-
-              const scoreA =
-                "runsA" in m.scoreState
-                  ? `${m.scoreState.runsA}/${m.scoreState.wicketsA}`
-                  : "goalsA" in m.scoreState
-                  ? m.scoreState.goalsA
-                  : "scoreA" in m.scoreState
-                  ? m.scoreState.scoreA
-                  : "0";
-
-              const scoreB =
-                "runsB" in m.scoreState
-                  ? `${m.scoreState.runsB}/${m.scoreState.wicketsB}`
-                  : "goalsB" in m.scoreState
-                  ? m.scoreState.goalsB
-                  : "scoreB" in m.scoreState
-                  ? m.scoreState.scoreB
-                  : "0";
-
-              return (
-                <Link key={m.id} href={`/matches/${m.id}`}>
-                  <Card variant="default" className="p-4 hover:border-hpl-accent hover:shadow-glow transition-all cursor-pointer bg-hpl-surface border-hpl-border group flex flex-col justify-between">
-                    <div className="flex items-center justify-between pb-2 border-b border-hpl-border text-xs">
-                      <span className="font-medium text-hpl-accent">{m.round}</span>
-                      <Badge variant={m.status === "live" ? "live" : m.status === "completed" ? "completed" : "upcoming"} size="sm">
-                        {m.status.toUpperCase()}
-                      </Badge>
-                    </div>
-
-                    {/* 3-Column Aligned Header */}
-                    <div className="py-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                      <div className="flex items-center justify-end gap-2 min-w-0 text-right">
-                        <span className="text-xs font-bold text-white truncate max-w-full font-display">
-                          {tA?.name || m.teamAId}
-                        </span>
-                        <div
-                          className="w-7 h-7 rounded-lg text-white font-bold text-[10px] flex items-center justify-center shrink-0 border border-white/20"
-                          style={{ backgroundColor: tA?.primaryColor || "#38b6ff" }}
-                        >
-                          {codeA}
-                        </div>
-                      </div>
-
-                      <div className="min-w-[80px] text-center font-mono font-black text-sm text-white px-1 whitespace-nowrap tabular-nums">
-                        {m.status === "upcoming" ? "vs" : `${scoreA} : ${scoreB}`}
-                      </div>
-
-                      <div className="flex items-center justify-start gap-2 min-w-0 text-left">
-                        <div
-                          className="w-7 h-7 rounded-lg text-white font-bold text-[10px] flex items-center justify-center shrink-0 border border-white/20"
-                          style={{ backgroundColor: isBye ? "#475569" : tB?.primaryColor || "#10b981" }}
-                        >
-                          {codeB}
-                        </div>
-                        <span className={`text-xs font-bold truncate max-w-full font-display ${isBye ? "text-hpl-gold italic" : "text-white"}`}>
-                          {isBye ? "Scheduled Bye" : tB?.name || m.teamBId}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-hpl-border flex items-center justify-between text-[11px] text-hpl-muted">
-                      <span>{formatDateTime(m.startTime)}</span>
-                      <span className="text-hpl-accent font-semibold flex items-center group-hover:text-hpl-accent-soft">
-                        Match Centre <ArrowRight className="w-3 h-3 ml-1 transform group-hover:translate-x-0.5 transition-transform" />
-                      </span>
-                    </div>
-                  </Card>
-                </Link>
-              );
-            })}
+          <div className="space-y-2.5">
+            {filteredMatches.map((m) => (
+              <MatchRow
+                key={m.id}
+                match={m}
+                teamA={teamsMap[m.teamAId]}
+                teamB={teamsMap[m.teamBId]}
+              />
+            ))}
           </div>
         )}
       </div>

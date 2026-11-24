@@ -8,4 +8,5 @@ export * from "./volleyball-calc";
 export * from "./basketball-calc";
 export * from "./validators";
 export * from "./permissions";
+export * from "./match-display";
 
