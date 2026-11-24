@@ -6,61 +6,105 @@ import { useSports, useMatches, useTeams, useStandings } from "../../hooks";
 import { useServices } from "../../providers";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import { Skeleton } from "../../components/ui/skeleton";
-import { Award } from "lucide-react";
-import { formatDateTime } from "../../utils/formatters";
+import { Award, ChevronRight } from "lucide-react";
 import { SportId } from "../../types";
 import { HomeHero } from "./home-hero";
-import { HomeLiveCard } from "./home-live-card";
 import { SHOWCASE_TOP_PERFORMER } from "../../showcase/showcase";
+import {
+  SportChipRow,
+  LiveMatchCarousel,
+  MatchRow,
+} from "../../components/scoreboards";
 
 export const HomePage: React.FC = () => {
   const { isDemoMode } = useServices();
   const { sports } = useSports();
   const { matches, isLoading: matchesLoading } = useMatches();
   const { teams } = useTeams();
-  const [selectedSport, setSelectedSport] = useState<SportId>("cricket");
-  const { standings } = useStandings(selectedSport);
-
-  const liveMatches = matches.filter((m) => m.status === "live");
-  const upcomingMatches = matches.filter((m) => m.status === "upcoming").slice(0, 4);
-  const recentResults = matches.filter((m) => m.status === "completed").slice(0, 4);
+  const [selectedSport, setSelectedSport] = useState<SportId | "all">("all");
+  const { standings } = useStandings(selectedSport === "all" ? "cricket" : selectedSport);
 
   const teamsMap = Object.fromEntries(teams.map((t) => [t.id, t]));
 
+  // Filtered by selected sport chip
+  const filteredMatches = selectedSport === "all"
+    ? matches
+    : matches.filter((m) => m.sportId === selectedSport);
+
+  const liveMatches = filteredMatches.filter((m) => m.status === "live");
+  const nonLiveMatches = filteredMatches.filter((m) => m.status !== "live").slice(0, 6);
+
   return (
-    <div className="space-y-10 pb-16">
+    <div className="space-y-8 pb-16">
       <HomeHero />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        {/* Live-Now Strip */}
-        <section className="space-y-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Sport Chip Row */}
+        <section aria-label="Sport selection">
+          <SportChipRow
+            sports={sports}
+            selectedSportId={selectedSport}
+            onSelectSport={(id) => setSelectedSport(id as SportId | "all")}
+            includeAll={true}
+            allLabel="All Sports"
+          />
+        </section>
+
+        {/* Live Match Carousel Section */}
+        <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="relative flex h-3 w-3">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-hpl-live opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-hpl-live" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-hpl-live" />
               </span>
-              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight font-display">
-                Live Matches Right Now
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight font-display">
+                Live Match
               </h2>
             </div>
-            <span className="text-xs text-hpl-muted">{liveMatches.length} Matches in progress</span>
+            {liveMatches.length > 0 && (
+              <span className="text-xs text-hpl-muted font-medium">
+                {liveMatches.length} Live
+              </span>
+            )}
+          </div>
+
+          <LiveMatchCarousel
+            matches={liveMatches}
+            teamsMap={teamsMap}
+            isLoading={matchesLoading}
+          />
+        </section>
+
+        {/* Matches List Section with "See all" */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight font-display">
+              Matches
+            </h2>
+            <Link
+              href="/fixtures"
+              className="text-xs font-semibold text-hpl-accent hover:text-hpl-accent-soft flex items-center gap-0.5 transition-colors"
+            >
+              <span>See all</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {matchesLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Skeleton className="h-40 rounded-2xl" />
-              <Skeleton className="h-40 rounded-2xl" />
+            <div className="space-y-3">
+              <div className="h-16 rounded-2xl bg-[rgba(11,26,40,0.78)] animate-pulse" />
+              <div className="h-16 rounded-2xl bg-[rgba(11,26,40,0.78)] animate-pulse" />
+              <div className="h-16 rounded-2xl bg-[rgba(11,26,40,0.78)] animate-pulse" />
             </div>
-          ) : liveMatches.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-hpl-surface border border-hpl-border text-center text-hpl-muted text-sm">
-              No live matches currently underway. Check fixtures for upcoming schedule.
+          ) : nonLiveMatches.length === 0 ? (
+            <div className="p-6 rounded-2xl bg-[rgba(11,26,40,0.78)] backdrop-blur-md border border-hpl-border text-center text-xs text-hpl-muted">
+              No matches currently scheduled for this selection.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {liveMatches.map((m) => (
-                <HomeLiveCard
+            <div className="space-y-2.5">
+              {nonLiveMatches.map((m) => (
+                <MatchRow
                   key={m.id}
                   match={m}
                   teamA={teamsMap[m.teamAId]}
@@ -71,27 +115,19 @@ export const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* Sport Switcher & Mini Standings */}
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight font-display">
+        {/* Sport Standings & MVP Grid */}
+        <section className="space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight font-display">
               Points Table & Leaderboard
             </h2>
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar p-1 bg-hpl-surface-2 rounded-2xl border border-hpl-border">
-              {sports.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedSport(s.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all select-none ${
-                    selectedSport === s.id
-                      ? "bg-hpl-accent text-hpl-deep shadow-glow"
-                      : "text-hpl-muted hover:text-white hover:bg-hpl-surface"
-                  }`}
-                >
-                  {s.name}
-                </button>
-              ))}
-            </div>
+            <Link
+              href="/standings"
+              className="text-xs font-semibold text-hpl-accent hover:text-hpl-accent-soft flex items-center gap-0.5"
+            >
+              <span>Full Standings</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,7 +135,7 @@ export const HomePage: React.FC = () => {
               <Card variant="default">
                 <CardHeader>
                   <CardTitle className="text-sm font-bold capitalize text-white flex items-center justify-between">
-                    <span>{selectedSport} Points Table</span>
+                    <span>{selectedSport === "all" ? "Cricket" : selectedSport} Standings</span>
                     {standings.some((s) => s.isDemo) && (
                       <Badge variant="warning" size="sm">Demo Data</Badge>
                     )}
@@ -171,70 +207,6 @@ export const HomePage: React.FC = () => {
               </Card>
             </div>
           </div>
-        </section>
-
-        {/* Upcoming & Recent Results */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card variant="default">
-            <CardHeader>
-              <CardTitle className="text-sm font-bold flex items-center justify-between">
-                <span>Upcoming Matches</span>
-                <Link href="/fixtures" className="text-xs font-normal text-hpl-accent hover:underline">
-                  All Fixtures
-                </Link>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {upcomingMatches.length === 0 ? (
-                <div className="p-4 text-center text-xs text-hpl-muted bg-hpl-surface-2 rounded-xl border border-hpl-border">
-                  No upcoming matches scheduled. Check fixtures calendar soon.
-                </div>
-              ) : (
-                upcomingMatches.map((m) => (
-                  <div key={m.id} className="p-3 rounded-xl bg-hpl-surface-2 border border-hpl-border flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-bold text-white">
-                        {teamsMap[m.teamAId]?.shortName || "A"} vs {m.teamBId === "bye" ? "BYE" : teamsMap[m.teamBId]?.shortName || "B"}
-                      </span>
-                      <div className="text-[10px] text-hpl-muted capitalize">{m.sportId} • {m.venue}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {m.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
-                      <span className="font-mono text-hpl-accent font-semibold">{formatDateTime(m.startTime)}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-
-          <Card variant="default">
-            <CardHeader>
-              <CardTitle className="text-sm font-bold">Recent Results</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {recentResults.length === 0 ? (
-                <div className="p-4 text-center text-xs text-hpl-muted bg-hpl-surface-2 rounded-xl border border-hpl-border">
-                  No completed matches recorded yet. Match summaries will appear here once finalized.
-                </div>
-              ) : (
-                recentResults.map((m) => (
-                  <div key={m.id} className="p-3 rounded-xl bg-hpl-surface-2 border border-hpl-border flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-bold text-white">
-                        {teamsMap[m.teamAId]?.name || "A"} vs {teamsMap[m.teamBId]?.name || "B"}
-                      </span>
-                      <div className="text-[10px] text-hpl-muted">{m.resultSummary || "Completed Match"}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {m.isDemo && <Badge variant="warning" size="sm">Demo Data</Badge>}
-                      <Badge variant="completed" size="sm">FT</Badge>
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
         </section>
       </div>
     </div>
